@@ -1,0 +1,8 @@
+-main DocSet
+-neko run.n
+-cp src
+-lib lime
+-lib openfl-native
+-lib format
+-lib svg
+--remap flash:flash

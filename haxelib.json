@@ -1,0 +1,15 @@
+{
+	"name": "docset",
+	"url" : "https://github.com/MattTuttle/docset",
+	"license": "MIT",
+	"tags": ["utility", "documentation", "docset"],
+	"description": "Generates a Dash Docset from haxedoc documentation",
+	"version": "0.0.1",
+	"releasenote": "Initial release",
+	"contributors": ["heardtheword"],
+	"dependencies": {
+		"lime": "",
+		"openfl-native": "",
+		"svg": ""
+	}
+}
