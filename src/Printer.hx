@@ -31,7 +31,7 @@ class Printer extends HtmlPrinter
 		var documents = contents + "Resources/Documents/";
 		createDirectory(documents);
 
-		loadFile(file);
+		var parser = loadFile(file);
 		parser.sort();
 
 		SearchIndex.generate(parser.root, contents, this);
@@ -82,11 +82,13 @@ class Printer extends HtmlPrinter
 
 	private function loadFile(file, ?platform, ?remap)
 	{
+		var parser = new haxe.rtti.XmlParser();
 		var data = sys.io.File.getContent(Sys.getCwd() + file);
 		var x = Xml.parse(data).firstElement();
 		if (remap != null)
 			transformPackage(x, remap, platform);
 		parser.process(x, platform);
+		return parser;
 	}
 
 	private function transformPackage(x:Xml, remap, platform)
@@ -167,6 +169,5 @@ class Printer extends HtmlPrinter
 	}
 
 	private var haxelibPath:String;
-	private var parser = new haxe.rtti.XmlParser();
 
 }

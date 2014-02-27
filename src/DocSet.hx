@@ -7,7 +7,7 @@ class DocSet
 	{
 		var doc = new DocSet(),
 			arguments = Sys.args(),
-			docName:String = "Project",
+			docName:String = null,
 			xmlFile:String = "haxedoc.xml",
 			template:String = "template.xml",
 			iconFile:String = null;
@@ -22,42 +22,41 @@ class DocSet
 			}
 		}
 
-		if (arguments.length == 0)
+		var opt = new OptionArg(arguments);
+		opt.set("i", "icon.svg");
+		opt.set("f", "filter");
+		opt.set("t", "template.xml");
+		opt.set("x", "haxedoc.xml");
+
+		try
 		{
-			neko.Lib.println("USAGE: docset [-i icon.svg] [-t template.xml] [-x haxedoc.xml] <ProjectName>");
-			return;
-		}
-		else
-		{
-			while (arguments.length > 0)
+			if (arguments.length == 0)
 			{
-				var arg = arguments.shift();
-				switch (arg)
+				throw "Expected arguments to be passed";
+			}
+
+			while (opt.get())
+			{
+				switch (opt.flag)
 				{
-					case "-x":
-						if (arguments.length > 0)
-						{
-							xmlFile = arguments.shift();
-						}
-					case "-t":
-						if (arguments.length > 0)
-						{
-							template = arguments.shift();
-						}
-					case "-i":
-						if (arguments.length > 0)
-						{
-							iconFile = arguments.shift();
-						}
-					case "-f":
-						if (arguments.length > 0)
-						{
-							doc.html.addFilter(arguments.shift());
-						}
-					default:
-						docName = arg;
+					case "x": xmlFile = opt.arg;
+					case "t": template = opt.arg;
+					case "i": iconFile = opt.arg;
+					case "f": doc.html.addFilter(opt.arg);
+					 default: docName = opt.flag;
 				}
 			}
+
+			if (docName == null)
+			{
+				throw "Must specify the docset name";
+			}
+		}
+		catch (e:String)
+		{
+			neko.Lib.println(e);
+			neko.Lib.println('USAGE: docset $opt ProjectName');
+			return;
 		}
 
 		doc.generate(docName, xmlFile, template);
