@@ -8,6 +8,8 @@ typedef ClassFieldType = {
 class SearchIndex
 {
 
+	public static var filters:List<String> = new List<String>();
+
 	public static function generate(root, contents:String)
 	{
 		db = sys.db.Sqlite.open(contents + "/Resources/docSet.dsidx");
@@ -36,6 +38,20 @@ class SearchIndex
 		return path;
 	}
 
+	private static function filtered(path:Path, isPackage:Bool)
+	{
+		if (isPackage && path == "Remoting")
+			return true;
+		if (StringTools.endsWith(path, "__"))
+			return true;
+		if (filters.isEmpty())
+			return false;
+		for (x in filters)
+			if (StringTools.startsWith(path, x))
+				return false;
+		return true;
+	}
+
 	private static function processPackage(name, list:Array<TypeTree>)
 	{
 		for (e in list)
@@ -43,24 +59,26 @@ class SearchIndex
 			switch (e)
 			{
 				case TPackage(name, full, list):
+					if (filtered(full, true))
+						continue;
 					var isPrivate = name.charAt(0) == "_";
 					if (!isPrivate)
 					{
 						var id = full.split(".").join("_");
 						// print('<li><a href="#" class="package" onclick="return toggle(\'$id\')">$name</a><div id="$id" class="package_content">');
 					}
-					var old = curpackage;
-					curpackage = full;
+					var old = currentPackage;
+					currentPackage = full;
 					processPackage(name, list);
-					curpackage = old;
+					currentPackage = old;
 				default:
 					var i = TypeApi.typeInfos(e);
-					if (i.isPrivate || i.path == "@Main")
+					if (i.isPrivate || i.path == "@Main" || filtered(i.path, false))
 						continue;
 
 					var p = i.path.split(".");
 					var name = p.pop();
-					var local = (p.join(".") == curpackage);
+					var local = (p.join(".") == currentPackage);
 					p.push(name);
 
 					name = local ? name : formatPath(i.path);
@@ -129,5 +147,5 @@ class SearchIndex
 	}
 
 	private static var db:sys.db.Connection;
-	private static var curpackage:String;
+	private static var currentPackage:String;
 }

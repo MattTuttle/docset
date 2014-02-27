@@ -34,6 +34,7 @@ class Printer extends HtmlPrinter
 		loadFile(file);
 		parser.sort();
 
+		SearchIndex.filters = filters;
 		SearchIndex.generate(parser.root, contents);
 
 		save(TPackage("root", "root", parser.root), documents + "index.html");

@@ -49,6 +49,11 @@ class DocSet
 						{
 							iconFile = arguments.shift();
 						}
+					case "-f":
+						if (arguments.length > 0)
+						{
+							doc.html.addFilter(arguments.shift());
+						}
 					default:
 						docName = arg;
 				}
