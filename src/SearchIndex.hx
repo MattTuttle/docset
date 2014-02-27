@@ -1,4 +1,5 @@
 import haxe.rtti.CType;
+import tools.haxedoc.HtmlPrinter;
 
 typedef ClassFieldType = {
 	name:String,
@@ -8,9 +9,7 @@ typedef ClassFieldType = {
 class SearchIndex
 {
 
-	public static var filters:List<String> = new List<String>();
-
-	public static function generate(root, contents:String)
+	public static function generate(root, contents:String, html:HtmlPrinter)
 	{
 		db = sys.db.Sqlite.open(contents + "/Resources/docSet.dsidx");
 		// drop the table if this database has previously been opened
@@ -20,7 +19,7 @@ class SearchIndex
 		// prevent unique keys
 		db.request("CREATE UNIQUE INDEX anchor ON searchIndex (name, type, path);");
 
-		processPackage("root", root);
+		processPackage("root", root, html);
 
 		db.close();
 	}
@@ -38,42 +37,24 @@ class SearchIndex
 		return path;
 	}
 
-	private static function filtered(path:Path, isPackage:Bool)
-	{
-		if (isPackage && path == "Remoting")
-			return true;
-		if (StringTools.endsWith(path, "__"))
-			return true;
-		if (filters.isEmpty())
-			return false;
-		for (x in filters)
-			if (StringTools.startsWith(path, x))
-				return false;
-		return true;
-	}
-
-	private static function processPackage(name, list:Array<TypeTree>)
+	private static function processPackage(name, list:Array<TypeTree>, html:HtmlPrinter)
 	{
 		for (e in list)
 		{
 			switch (e)
 			{
 				case TPackage(name, full, list):
-					if (filtered(full, true))
+					if (html.filtered(full, true))
 						continue;
 					var isPrivate = name.charAt(0) == "_";
-					if (!isPrivate)
-					{
-						var id = full.split(".").join("_");
-						// print('<li><a href="#" class="package" onclick="return toggle(\'$id\')">$name</a><div id="$id" class="package_content">');
-					}
 					var old = currentPackage;
 					currentPackage = full;
-					processPackage(name, list);
+					processPackage(name, list, html);
 					currentPackage = old;
+					db.request("INSERT OR IGNORE INTO searchIndex(name, type, path) VALUES ('" + full + "', 'Package', '/#" + name + "');");
 				default:
 					var i = TypeApi.typeInfos(e);
-					if (i.isPrivate || i.path == "@Main" || filtered(i.path, false))
+					if (i.isPrivate || i.path == "@Main" || html.filtered(i.path, false))
 						continue;
 
 					var p = i.path.split(".");
